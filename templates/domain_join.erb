@@ -146,7 +146,7 @@ function query {
   is_joined_to_domain
   _is_joined_to_domain=$?
   if [ $_is_joined_to_domain = 0 ]; then
-    echo "${upper_host} is joined to the domain"
+    echo "<%= @hostname %> is joined to the domain"
     #TODO only force if a shell flag is given?
     #force_add_if_sssd_service_broken
     exit 0

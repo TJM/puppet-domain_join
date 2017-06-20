@@ -48,11 +48,6 @@ register_account='<%= @register_account %>'
 register_password='<%= @register_password %>'
 <%- if @createcomputer then -%>container_ou='<%= @createcomputer %>'<%- end -%>
 
-if [[ -z "${container_ou// }" ]] ; then
-  echo "Unable to query without setting an OU. Puppet class variable 'createcomputer' was undef." 1>&2
-  exit 1
-fi
-
 function restart_sshd {
   <%- case @operatingsystemmajrelease
   when "6" -%>
@@ -116,8 +111,8 @@ function is_service_running {
 
 
 function is_joined_to_domain {
-  upper_host=<%= @hostname.upcase %>
-  net ads dn "CN=${upper_host},OU=${container_ou},<%= 'DC=' + @domain_fqdn.split('.').join(',DC=') %>" -U ${register_account}%${register_password}
+  # Use Computer Account (-P) to query domain
+  net ads dn "<%= 'DC=' + @domain_fqdn.split('.').join(',DC=') %>" distinguishedName -P -l
   EXIT_CODE=$?
   [ "$EXIT_CODE" == '0' ] && return 0 || return 1
 }
@@ -156,7 +151,7 @@ function query {
     #force_add_if_sssd_service_broken
     exit 0
   else
-    echo "${upper_host} is not joined to the domain, or service account has lost access"
+    echo "<%= @hostname %> is not joined to the domain, or computer account has lost access"
     exit 1
   fi
 }
